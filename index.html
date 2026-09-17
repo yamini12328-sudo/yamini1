@@ -1,0 +1,2318 @@
+This is a complete, modern, and responsive HTML document for the "CareerAI" web application. It includes a landing page, dashboard, and multiple tool interfaces, all styled with a professional SaaS aesthetic. The code uses Tailwind CSS for styling, Lucide icons, and Chart.js for visualizations, with a built-in dark/light mode toggle.
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerAI – AI Resume & Job Assistant</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 8px;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+        }
+        .gradient-bg-hover:hover {
+            background: linear-gradient(135deg, #1d4ed8, #6d28d9);
+        }
+        .card-shadow {
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+        }
+        .card-shadow-md {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+        }
+        .dark .card-shadow {
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+        }
+        .dark .card-shadow-md {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        .dark .skeleton {
+            background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
+            background-size: 200% 100%;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up {
+            animation: slideUp 0.4s ease-out;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .toast-enter {
+            animation: toastIn 0.3s ease-out;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .progress-ring-circle {
+            transition: stroke-dashoffset 1s ease-in-out;
+        }
+        .sidebar-link.active {
+            background: #eff6ff;
+            color: #2563eb;
+            font-weight: 600;
+        }
+        .dark .sidebar-link.active {
+            background: #1e3a5f;
+            color: #60a5fa;
+        }
+        [data-theme="dark"] {
+            color-scheme: dark;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 antialiased">
+
+<!-- ==================== TOAST CONTAINER ==================== -->
+<div id="toastContainer" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
+
+<!-- ==================== APP SHELL ==================== -->
+<div id="app"></div>
+
+<script>
+// ============================================================
+// 1. STATE MANAGEMENT & DEMO DATA
+// ============================================================
+
+const state = {
+    darkMode: localStorage.getItem('careerai_dark') === 'true',
+    currentPage: 'landing',
+    isLoggedIn: false,
+    user: {
+        name: 'Alex Johnson',
+        email: 'alex@example.com',
+        careerGoal: 'Data Analyst',
+        experienceLevel: 'Fresher',
+        location: 'Chennai',
+        skills: ['Python', 'SQL', 'Excel', 'Power BI'],
+        education: 'B.Tech in Computer Science',
+        expectedSalary: '₹6-8 LPA',
+        profileCompletion: 78,
+        avatar: 'AJ'
+    },
+    onboarding: {
+        lookingFor: '',
+        targetRole: '',
+        location: '',
+        skills: '',
+        experience: '',
+        education: '',
+        salary: ''
+    },
+    resume: {
+        uploaded: false,
+        fileName: '',
+        fileType: '',
+        text: '',
+        analyzed: false,
+        atsScore: 84,
+        breakdown: {
+            atsCompatibility: 90,
+            keywordOptimization: 82,
+            formatting: 88,
+            skills: 79,
+            experience: 85,
+            achievements: 76
+        },
+        strengths: ['Strong technical skills', 'Good project descriptions', 'Relevant certifications'],
+        weaknesses: ['Missing measurable achievements', 'Weak professional summary', 'Missing keywords', 'Too much unnecessary information'],
+        recommendations: [
+            'Add measurable results to your project descriptions.',
+            'Include SQL and Power BI keywords for Data Analyst roles.',
+            'Reduce the length of your professional summary.'
+        ],
+        extracted: {
+            name: 'Alex Johnson',
+            contact: 'alex@example.com | +91 98765 43210',
+            summary: 'Aspiring Data Analyst with strong foundation in Python, SQL, and Power BI.',
+            education: 'B.Tech in Computer Science, Anna University (2022-2026)',
+            experience: 'Internship at TechCorp (2025)',
+            skills: ['Python', 'SQL', 'Excel', 'Power BI'],
+            projects: ['Sales Dashboard', 'Customer Churn Prediction'],
+            certifications: ['Google Data Analytics', 'SQL for Data Science'],
+            achievements: ['Dean\'s List 2024', 'Hackathon Finalist']
+        }
+    },
+    jobMatcher: {
+        role: 'Data Analyst',
+        location: 'Chennai',
+        experience: 'Fresher',
+        skills: 'Python, SQL, Excel, Power BI',
+        results: [
+            { id: 1, title: 'Data Analyst', company: 'ABC Technologies', location: 'Chennai', experience: 'Fresher', salary: '₹4-6 LPA', skills: ['Python', 'SQL', 'Power BI', 'Excel'], posted: '2 days ago', match: 87, matched: ['Python', 'SQL', 'Power BI', 'Excel'], missing: ['Tableau'] },
+            { id: 2, title: 'Junior Data Analyst', company: 'XYZ Analytics', location: 'Bangalore', experience: '0-1 years', salary: '₹5-7 LPA', skills: ['Python', 'SQL', 'Tableau', 'Statistics'], posted: '5 days ago', match: 72, matched: ['Python', 'SQL'], missing: ['Tableau', 'Statistics'] },
+            { id: 3, title: 'Business Analyst', company: 'DataDrive Inc', location: 'Remote', experience: 'Fresher', salary: '₹4-5 LPA', skills: ['Excel', 'SQL', 'Power BI', 'Communication'], posted: '1 week ago', match: 68, matched: ['Excel', 'SQL', 'Power BI'], missing: ['Communication'] },
+            { id: 4, title: 'Data Analyst Intern', company: 'TechStart', location: 'Chennai', experience: 'Fresher', salary: '₹15-20K/month', skills: ['Python', 'Excel', 'Data Cleaning'], posted: '3 days ago', match: 75, matched: ['Python', 'Excel'], missing: ['Data Cleaning'] },
+        ]
+    },
+    skillGap: {
+        targetRole: 'Data Analyst',
+        currentSkills: ['Python', 'SQL', 'Excel', 'Power BI'],
+        skillsToLearn: [
+            { name: 'Statistics', priority: 'High' },
+            { name: 'Tableau', priority: 'Medium' },
+            { name: 'Data Cleaning', priority: 'Medium' },
+            { name: 'Advanced SQL', priority: 'High' },
+            { name: 'Cloud Basics', priority: 'Low' },
+        ]
+    },
+    roadmap: [
+        { step: 1, title: 'Python Fundamentals', status: 'completed', progress: 100, skills: 'Python basics, OOP', projects: 'Calculator, To-Do App', resources: 'Coursera, freeCodeCamp' },
+        { step: 2, title: 'SQL', status: 'completed', progress: 100, skills: 'Joins, Subqueries, Indexing', projects: 'Employee DB, Sales Analysis', resources: 'SQLZoo, LeetCode' },
+        { step: 3, title: 'Excel', status: 'completed', progress: 100, skills: 'Pivot Tables, VLOOKUP, Charts', projects: 'Sales Dashboard', resources: 'Excel Easy, YouTube' },
+        { step: 4, title: 'Statistics', status: 'in-progress', progress: 60, skills: 'Descriptive, Inferential, Hypothesis Testing', projects: 'A/B Testing Analysis', resources: 'Khan Academy, StatQuest' },
+        { step: 5, title: 'Power BI', status: 'in-progress', progress: 30, skills: 'DAX, Data Modeling, Visualizations', projects: 'Financial Dashboard', resources: 'Microsoft Learn, Udemy' },
+        { step: 6, title: 'Portfolio Projects', status: 'not-started', progress: 0, skills: 'End-to-end analytics', projects: 'Customer Segmentation, Sales Forecasting', resources: 'Kaggle, GitHub' },
+        { step: 7, title: 'Interview Preparation', status: 'not-started', progress: 0, skills: 'SQL, Statistics, Case Studies', projects: 'Mock Interviews', resources: 'Pramp, Interview Query' },
+        { step: 8, title: 'Job Applications', status: 'not-started', progress: 0, skills: 'Resume, Networking, Applications', projects: 'Apply to 50+ jobs', resources: 'LinkedIn, Naukri' },
+    ],
+    interview: {
+        role: 'Data Analyst',
+        experience: 'Fresher',
+        type: 'Technical',
+        questions: [
+            { q: 'Explain the difference between INNER JOIN and LEFT JOIN.', a: '', score: 82, feedback: ['Correct explanation', 'Good example', 'Could be more concise'], suggested: 'INNER JOIN returns only matching rows from both tables. LEFT JOIN returns all rows from the left table and matching rows from the right table, with NULLs for non-matching.' },
+            { q: 'What is the difference between WHERE and HAVING?', a: '', score: 75, feedback: ['Good understanding', 'Missing example'], suggested: 'WHERE filters rows before grouping. HAVING filters groups after GROUP BY.' },
+        ],
+        currentQuestion: 0,
+        scores: { technical: 82, communication: 76, confidence: 79, overall: 80 }
+    },
+    applications: [
+        { id: 1, company: 'ABC Technologies', title: 'Data Analyst', date: '2026-01-15', status: 'Applied', interviewDate: '', notes: 'Applied via LinkedIn' },
+        { id: 2, company: 'XYZ Analytics', title: 'Junior Data Analyst', date: '2026-01-10', status: 'Interview', interviewDate: '2026-02-05', notes: 'Technical round scheduled' },
+        { id: 3, company: 'DataDrive Inc', title: 'Business Analyst', date: '2026-01-05', status: 'Offer', interviewDate: '2026-01-20', notes: 'Offer received! Negotiating salary' },
+        { id: 4, company: 'TechStart', title: 'Data Analyst Intern', date: '2025-12-28', status: 'Rejected', interviewDate: '', notes: 'Position filled' },
+        { id: 5, company: 'Innovate Corp', title: 'Data Analyst', date: '2026-01-18', status: 'Saved', interviewDate: '', notes: 'Need to tailor resume' },
+        { id: 6, company: 'Global Solutions', title: 'BI Analyst', date: '2026-01-12', status: 'Applied', interviewDate: '', notes: '' },
+    ],
+    savedJobs: [
+        { id: 1, title: 'Data Analyst', company: 'ABC Technologies', location: 'Chennai', match: 87, saved: true },
+        { id: 2, title: 'Junior Data Analyst', company: 'XYZ Analytics', location: 'Bangalore', match: 72, saved: true },
+    ],
+    notifications: [
+        { id: 1, text: 'Your resume analysis is complete.', time: '2 min ago', read: false },
+        { id: 2, text: 'You have 5 new job matches.', time: '1 hour ago', read: false },
+        { id: 3, text: 'Your interview readiness score increased to 78%.', time: '3 hours ago', read: true },
+        { id: 4, text: 'Complete your SQL skill assessment.', time: '1 day ago', read: true },
+    ],
+    chatMessages: [
+        { role: 'ai', text: 'Hi! I\'m your AI career coach. Ask me about resumes, jobs, skills, interviews, or career planning.' }
+    ],
+    admin: {
+        totalUsers: 12480,
+        activeUsers: 3420,
+        resumesAnalyzed: 28750,
+        jobsMatched: 15600,
+        interviewsCompleted: 8900,
+        userGrowth: [1200, 2400, 4800, 7600, 9800, 11200, 12480],
+        resumeActivity: [3200, 5800, 7200, 9500, 11200, 12800, 14500],
+        jobMatchActivity: [1800, 3200, 4500, 6800, 8900, 10500, 12000]
+    }
+};
+
+// ============================================================
+// 2. AI SERVICE FUNCTIONS (Demo / Mock)
+// ============================================================
+
+const AIService = {
+    analyzeResume(text) {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                resolve({
+                    atsScore: 84,
+                    breakdown: {
+                        atsCompatibility: 90,
+                        keywordOptimization: 82,
+                        formatting: 88,
+                        skills: 79,
+                        experience: 85,
+                        achievements: 76
+                    },
+                    strengths: ['Strong technical skills', 'Good project descriptions', 'Relevant certifications'],
+                    weaknesses: ['Missing measurable achievements', 'Weak professional summary', 'Missing keywords', 'Too much unnecessary information'],
+                    recommendations: [
+                        'Add measurable results to your project descriptions.',
+                        'Include SQL and Power BI keywords for Data Analyst roles.',
+                        'Reduce the length of your professional summary.'
+                    ],
+                    extracted: {
+                        name: 'Alex Johnson',
+                        contact: 'alex@example.com | +91 98765 43210',
+                        summary: 'Aspiring Data Analyst with strong foundation in Python, SQL, and Power BI.',
+                        education: 'B.Tech in Computer Science, Anna University (2022-2026)',
+                        experience: 'Internship at TechCorp (2025)',
+                        skills: ['Python', 'SQL', 'Excel', 'Power BI'],
+                        projects: ['Sales Dashboard', 'Customer Churn Prediction'],
+                        certifications: ['Google Data Analytics', 'SQL for Data Science'],
+                        achievements: ['Dean\'s List 2024', 'Hackathon Finalist']
+                    }
+                });
+            }, 1500);
+        });
+    },
+
+    calculateATSScore(resume) {
+        return Math.floor(Math.random() * 20) + 70;
+    },
+
+    extractResumeSkills(text) {
+        return ['Python', 'SQL', 'Excel', 'Power BI', 'Tableau'];
+    },
+
+    analyzeJobDescription(jd) {
+        return { keywords: ['Python', 'SQL', 'Tableau', 'Statistics', 'Data Cleaning'] };
+    },
+
+    calculateJobMatch(resumeSkills, jobSkills) {
+        return Math.floor(Math.random() * 30) + 60;
+    },
+
+    identifySkillGaps(current, required) {
+        return required.filter(s => !current.includes(s));
+    },
+
+    generateResumeSummary() {
+        return 'Results-driven Data Analyst with expertise in Python, SQL, and Power BI. Proven ability to deliver actionable insights through data analysis and visualization.';
+    },
+
+    improveResumeBullet(bullet) {
+        return '• ' + bullet + ' resulting in a 20% increase in efficiency.';
+    },
+
+    generateInterviewQuestions(role, type) {
+        return [
+            { q: 'Explain the difference between INNER JOIN and LEFT JOIN.', a: '', score: 82 },
+            { q: 'What is the difference between WHERE and HAVING?', a: '', score: 75 },
+        ];
+    },
+
+    evaluateInterviewAnswer(question, answer) {
+        return {
+            score: Math.floor(Math.random() * 25) + 70,
+            feedback: ['Good understanding', 'Could be more concise', 'Add examples'],
+            suggested: 'A well-structured answer should include a clear definition, an example, and a use case.'
+        };
+    },
+
+    generateCareerRoadmap(role) {
+        return state.roadmap;
+    },
+
+    careerChat(message) {
+        const responses = {
+            'improve my resume': 'Focus on quantifiable achievements, use action verbs, and tailor keywords to the job description. Keep it to 1-2 pages.',
+            'skills should i learn': 'For Data Analyst roles, focus on SQL, Python, Statistics, and a visualization tool like Power BI or Tableau.',
+            'sql interview questions': 'Here are 5 common SQL interview questions: 1. INNER vs LEFT JOIN. 2. WHERE vs HAVING. 3. Indexes. 4. Normalization. 5. Window functions.',
+            'hr interview': 'Prepare STAR method answers for behavioral questions. Research the company. Practice common questions like "Tell me about yourself".',
+            'projects should i add': 'Add projects that showcase data cleaning, analysis, and visualization. Example: Sales Dashboard, Customer Segmentation.',
+            'default': 'I can help with resume tips, job search strategies, skill development, and interview preparation. What would you like to focus on?'
+        };
+        for (const [key, val] of Object.entries(responses)) {
+            if (message.toLowerCase().includes(key)) return val;
+        }
+        return responses['default'];
+    }
+};
+
+// ============================================================
+// 3. UTILITY FUNCTIONS
+// ============================================================
+
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    const colors = {
+        success: 'bg-green-500',
+        error: 'bg-red-500',
+        info: 'bg-blue-500',
+        warning: 'bg-amber-500'
+    };
+    toast.className = `${colors[type]} text-white px-4 py-3 rounded-xl shadow-lg text-sm font-medium toast-enter pointer-events-auto max-w-sm`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+    }, 3500);
+}
+
+function toggleDarkMode() {
+    state.darkMode = !state.darkMode;
+    localStorage.setItem('careerai_dark', state.darkMode);
+    document.documentElement.classList.toggle('dark', state.darkMode);
+    render();
+}
+
+// Initialize dark mode
+if (state.darkMode) document.documentElement.classList.add('dark');
+
+// ============================================================
+// 4. RENDER FUNCTIONS
+// ============================================================
+
+function render() {
+    const app = document.getElementById('app');
+    if (state.currentPage === 'landing') {
+        app.innerHTML = renderLanding();
+    } else if (state.currentPage === 'login') {
+        app.innerHTML = renderLogin();
+    } else if (state.currentPage === 'signup') {
+        app.innerHTML = renderSignup();
+    } else if (state.currentPage === 'onboarding') {
+        app.innerHTML = renderOnboarding();
+    } else if (state.currentPage === 'dashboard') {
+        app.innerHTML = renderDashboardLayout(renderDashboardContent());
+    } else if (state.currentPage === 'resume-analyzer') {
+        app.innerHTML = renderDashboardLayout(renderResumeAnalyzer());
+    } else if (state.currentPage === 'job-matcher') {
+        app.innerHTML = renderDashboardLayout(renderJobMatcher());
+    } else if (state.currentPage === 'skill-gap') {
+        app.innerHTML = renderDashboardLayout(renderSkillGap());
+    } else if (state.currentPage === 'career-roadmap') {
+        app.innerHTML = renderDashboardLayout(renderRoadmap());
+    } else if (state.currentPage === 'interview-prep') {
+        app.innerHTML = renderDashboardLayout(renderInterviewPrep());
+    } else if (state.currentPage === 'career-coach') {
+        app.innerHTML = renderDashboardLayout(renderCareerCoach());
+    } else if (state.currentPage === 'applications') {
+        app.innerHTML = renderDashboardLayout(renderApplications());
+    } else if (state.currentPage === 'saved-jobs') {
+        app.innerHTML = renderDashboardLayout(renderSavedJobs());
+    } else if (state.currentPage === 'profile') {
+        app.innerHTML = renderDashboardLayout(renderProfile());
+    } else if (state.currentPage === 'admin') {
+        app.innerHTML = renderDashboardLayout(renderAdmin());
+    } else {
+        app.innerHTML = renderLanding();
+    }
+    lucide.createIcons();
+    initCharts();
+}
+
+// ============================================================
+// 4.1 LANDING PAGE
+// ============================================================
+
+function renderLanding() {
+    return `
+    <!-- Navbar -->
+    <nav class="sticky top-0 z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-2 cursor-pointer" onclick="navigate('landing')">
+                    <div class="w-8 h-8 gradient-bg rounded-lg flex items-center justify-center">
+                        <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <span class="text-xl font-bold text-slate-900 dark:text-white">Career<span class="gradient-text">AI</span></span>
+                </div>
+                <div class="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-400">
+                    <a href="#" onclick="navigate('landing')" class="hover:text-blue-600 dark:hover:text-blue-400 transition">Home</a>
+                    <a href="#features" class="hover:text-blue-600 dark:hover:text-blue-400 transition">Features</a>
+                    <a href="#how-it-works" class="hover:text-blue-600 dark:hover:text-blue-400 transition">How It Works</a>
+                    <a href="#" onclick="navigate('resume-analyzer')" class="hover:text-blue-600 dark:hover:text-blue-400 transition">Resume Analyzer</a>
+                    <a href="#" onclick="navigate('job-matcher')" class="hover:text-blue-600 dark:hover:text-blue-400 transition">Job Matcher</a>
+                    <a href="#" onclick="navigate('interview-prep')" class="hover:text-blue-600 dark:hover:text-blue-400 transition">Interview Prep</a>
+                    <a href="#" class="hover:text-blue-600 dark:hover:text-blue-400 transition">Pricing</a>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" aria-label="Toggle dark mode">
+                        <i data-lucide="${state.darkMode ? 'sun' : 'moon'}" class="w-5 h-5"></i>
+                    </button>
+                    <button onclick="navigate('login')" class="hidden sm:block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition">Login</button>
+                    <button onclick="navigate('signup')" class="gradient-bg gradient-bg-hover text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow-lg shadow-blue-500/25">Get Started</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="relative overflow-hidden bg-gradient-to-b from-blue-50/50 to-white dark:from-slate-900 dark:to-slate-950">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="animate-slide-up">
+                    <span class="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold px-4 py-1.5 rounded-full mb-6 border border-blue-200 dark:border-blue-800">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> AI-Powered Career Assistant
+                    </span>
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-slate-900 dark:text-white mb-6">
+                        Your AI Career Assistant for <span class="gradient-text">Smarter Job Searching</span>
+                    </h1>
+                    <p class="text-lg text-slate-600 dark:text-slate-400 mb-8 max-w-lg leading-relaxed">
+                        Build ATS-friendly resumes, match your skills with the right jobs, discover missing skills, and prepare confidently for interviews.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <button onclick="navigate('resume-analyzer')" class="gradient-bg gradient-bg-hover text-white font-semibold px-8 py-3.5 rounded-xl transition shadow-lg shadow-blue-500/25 flex items-center gap-2">
+                            <i data-lucide="file-search" class="w-5 h-5"></i> Analyze My Resume
+                        </button>
+                        <a href="#features" class="border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold px-8 py-3.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-2">
+                            <i data-lucide="layout-grid" class="w-5 h-5"></i> Explore Features
+                        </a>
+                    </div>
+                </div>
+                <div class="relative animate-fade-in">
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl card-shadow-md border border-slate-200 dark:border-slate-800 p-6 max-w-md mx-auto lg:mx-0 lg:ml-auto">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center">
+                                <i data-lucide="file-text" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-sm text-slate-900 dark:text-white">Resume Analysis</p>
+                                <p class="text-xs text-slate-500">ATS Score</p>
+                            </div>
+                        </div>
+                        <div class="relative w-32 h-32 mx-auto mb-4">
+                            <svg class="w-32 h-32 -rotate-90" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="52" fill="none" stroke="#e2e8f0" stroke-width="8" class="dark:stroke-slate-700"/>
+                                <circle cx="60" cy="60" r="52" fill="none" stroke="url(#gradient)" stroke-width="8" stroke-linecap="round"
+                                    stroke-dasharray="326.7" stroke-dashoffset="52.3" class="progress-ring-circle"/>
+                                <defs>
+                                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#2563eb"/>
+                                        <stop offset="100%" stop-color="#7c3aed"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="text-3xl font-bold text-slate-900 dark:text-white">84<span class="text-lg text-slate-400">%</span></span>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs"><span class="text-slate-500">Keyword Optimization</span><span class="font-medium text-slate-700 dark:text-slate-300">82%</span></div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5"><div class="gradient-bg h-1.5 rounded-full" style="width:82%"></div></div>
+                            <div class="flex justify-between text-xs"><span class="text-slate-500">Formatting</span><span class="font-medium text-slate-700 dark:text-slate-300">88%</span></div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5"><div class="gradient-bg h-1.5 rounded-full" style="width:88%"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-20 pt-10 border-t border-slate-200 dark:border-slate-800">
+                <div class="text-center">
+                    <p class="text-2xl sm:text-3xl font-bold gradient-text">10K+</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Resumes Analyzed</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-2xl sm:text-3xl font-bold gradient-text">5K+</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Job Matches</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-2xl sm:text-3xl font-bold gradient-text">95%</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">User Satisfaction</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-2xl sm:text-3xl font-bold gradient-text">24/7</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">AI Career Support</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="py-20 lg:py-28 bg-slate-50 dark:bg-slate-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="text-sm font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Features</span>
+                <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mt-3 mb-4">Everything you need to land your dream job</h2>
+                <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">AI-powered tools to help you build, prepare, and succeed in your career journey.</p>
+            </div>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                ${[
+                    { icon: 'file-search', title: 'AI Resume Analyzer', desc: 'Get instant ATS score and detailed feedback on your resume.' },
+                    { icon: 'check-circle', title: 'ATS Score Checker', desc: 'See how your resume performs against applicant tracking systems.' },
+                    { icon: 'target', title: 'Job Description Matcher', desc: 'Match your resume with job descriptions and identify gaps.' },
+                    { icon: 'trending-up', title: 'Skill Gap Analysis', desc: 'Discover which skills you need to learn for your target role.' },
+                    { icon: 'file-edit', title: 'AI Resume Builder', desc: 'Create professional resumes with AI-powered suggestions.' },
+                    { icon: 'message-square', title: 'Interview Preparation', desc: 'Practice with AI-generated questions and get instant feedback.' },
+                    { icon: 'map', title: 'Career Roadmap', desc: 'Get a personalized step-by-step plan to reach your goals.' },
+                    { icon: 'bot', title: 'AI Career Chatbot', desc: 'Ask career questions and get instant AI-powered advice.' },
+                ].map(f => `
+                    <div class="bg-white dark:bg-slate-950 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800 hover:card-shadow-md hover:-translate-y-1 transition-all duration-200 group">
+                        <div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mb-4 group-hover:gradient-bg transition">
+                            <i data-lucide="${f.icon}" class="w-6 h-6 text-blue-600 dark:text-blue-400 group-hover:text-white transition"></i>
+                        </div>
+                        <h3 class="font-semibold text-slate-900 dark:text-white mb-2">${f.title}</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">${f.desc}</p>
+                        <button class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition flex items-center gap-1">
+                            Learn More <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="py-20 lg:py-28">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="text-sm font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">How It Works</span>
+                <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mt-3 mb-4">Get started in three simple steps</h2>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                ${[
+                    { step: '01', title: 'Upload Your Resume', desc: 'Upload your PDF or DOCX resume or paste the text directly.' },
+                    { step: '02', title: 'Get AI Analysis', desc: 'Receive your ATS score, keyword analysis, and improvement tips.' },
+                    { step: '03', title: 'Apply & Track', desc: 'Match with jobs, prepare for interviews, and track applications.' },
+                ].map((s, i) => `
+                    <div class="text-center relative">
+                        <div class="w-16 h-16 gradient-bg rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/25">
+                            <span class="text-xl font-bold text-white">${s.step}</span>
+                        </div>
+                        <h3 class="font-semibold text-lg text-slate-900 dark:text-white mb-2">${s.title}</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 max-w-xs mx-auto">${s.desc}</p>
+                        ${i < 2 ? '<div class="hidden md:block absolute top-8 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-blue-500/50 to-purple-500/50"></div>' : ''}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-20 lg:py-28 gradient-bg relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+        </div>
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+            <h2 class="text-3xl sm:text-4xl font-bold text-white mb-6">Ready to take the next step in your career?</h2>
+            <p class="text-blue-100 mb-8 text-lg">Join thousands of job seekers who are building better resumes and finding better opportunities.</p>
+            <button onclick="navigate('signup')" class="bg-white text-slate-900 font-semibold px-8 py-3.5 rounded-xl hover:bg-blue-50 transition shadow-xl flex items-center gap-2 mx-auto">
+                <i data-lucide="rocket" class="w-5 h-5"></i> Start Your Career Journey
+            </button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 dark:bg-slate-950 text-slate-400 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-10">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 gradient-bg rounded-lg flex items-center justify-center">
+                            <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <span class="text-xl font-bold text-white">Career<span class="text-blue-400">AI</span></span>
+                    </div>
+                    <p class="text-sm leading-relaxed">AI-powered tools to help you build, prepare, and succeed.</p>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Product</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">Features</a></li>
+                        <li><a href="#" onclick="navigate('resume-analyzer')" class="hover:text-white transition">Resume Analyzer</a></li>
+                        <li><a href="#" onclick="navigate('job-matcher')" class="hover:text-white transition">Job Matcher</a></li>
+                        <li><a href="#" onclick="navigate('interview-prep')" class="hover:text-white transition">Interview Prep</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Company</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">About</a></li>
+                        <li><a href="#" class="hover:text-white transition">Contact</a></li>
+                        <li><a href="#" class="hover:text-white transition">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition">Terms</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Follow Us</h4>
+                    <div class="flex gap-3">
+                        <a href="#" class="w-9 h-9 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-slate-700 transition"><i data-lucide="twitter" class="w-4 h-4"></i></a>
+                        <a href="#" class="w-9 h-9 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-slate-700 transition"><i data-lucide="linkedin" class="w-4 h-4"></i></a>
+                        <a href="#" class="w-9 h-9 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-slate-700 transition"><i data-lucide="github" class="w-4 h-4"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-slate-800 mt-12 pt-8 text-center text-sm">
+                © 2026 CareerAI. All rights reserved.
+            </div>
+        </div>
+    </footer>
+    `;
+}
+
+// ============================================================
+// 4.2 LOGIN & SIGNUP
+// ============================================================
+
+function renderLogin() {
+    return `
+    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white dark:from-slate-900 dark:to-slate-950 p-4">
+        <div class="w-full max-w-md animate-slide-up">
+            <div class="text-center mb-8">
+                <div class="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="sparkles" class="w-7 h-7 text-white"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Welcome back</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">Log in to your CareerAI account</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl card-shadow-md border border-slate-200 dark:border-slate-800 p-8">
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
+                        <input type="email" id="loginEmail" value="alex@example.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="you@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
+                        <input type="password" id="loginPassword" value="password123" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="••••••••">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                            <input type="checkbox" checked class="rounded border-slate-300 text-blue-600 focus:ring-blue-500"> Remember me
+                        </label>
+                        <a href="#" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">Forgot password?</a>
+                    </div>
+                    <button onclick="handleLogin()" class="w-full gradient-bg gradient-bg-hover text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-blue-500/25">Login</button>
+                    <div class="relative my-4">
+                        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200 dark:border-slate-700"></div></div>
+                        <div class="relative flex justify-center text-xs"><span class="bg-white dark:bg-slate-900 px-3 text-slate-400">or continue with</span></div>
+                    </div>
+                    <button onclick="handleLogin()" class="w-full border border-slate-300 dark:border-slate-700 rounded-xl py-3 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Google
+                    </button>
+                </div>
+                <p class="text-center text-sm text-slate-500 dark:text-slate-400 mt-6">Don't have an account? <a href="#" onclick="navigate('signup')" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">Create account</a></p>
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+function renderSignup() {
+    return `
+    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white dark:from-slate-900 dark:to-slate-950 p-4">
+        <div class="w-full max-w-md animate-slide-up">
+            <div class="text-center mb-8">
+                <div class="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="sparkles" class="w-7 h-7 text-white"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Create your account</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">Start your AI-powered career journey</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl card-shadow-md border border-slate-200 dark:border-slate-800 p-8">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Full Name</label>
+                        <input type="text" id="signupName" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="Alex Johnson">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
+                        <input type="email" id="signupEmail" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="you@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
+                        <input type="password" id="signupPassword" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="••••••••">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Confirm Password</label>
+                        <input type="password" id="signupConfirm" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="••••••••">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Career Goal</label>
+                        <select id="signupGoal" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                            <option>Data Analyst</option>
+                            <option>Software Developer</option>
+                            <option>Mechanical Engineer</option>
+                            <option>Business Analyst</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Experience Level</label>
+                        <select id="signupExp" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                            <option>Fresher</option>
+                            <option>0-2 years</option>
+                            <option>2-5 years</option>
+                            <option>5+ years</option>
+                        </select>
+                    </div>
+                    <button onclick="handleSignup()" class="w-full gradient-bg gradient-bg-hover text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-blue-500/25 mt-2">Create Account</button>
+                </div>
+                <p class="text-center text-sm text-slate-500 dark:text-slate-400 mt-6">Already have an account? <a href="#" onclick="navigate('login')" class="text-blue-600 dark:text-blue-400 font-medium hover:underline">Login</a></p>
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+// ============================================================
+// 4.3 ONBOARDING
+// ============================================================
+
+function renderOnboarding() {
+    return `
+    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white dark:from-slate-900 dark:to-slate-950 p-4">
+        <div class="w-full max-w-lg animate-slide-up">
+            <div class="text-center mb-8">
+                <div class="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="user-check" class="w-7 h-7 text-white"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">What are you looking for?</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">Help us personalize your experience</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl card-shadow-md border border-slate-200 dark:border-slate-800 p-8">
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    ${['Internship', 'Entry-level job', 'Experienced job', 'Career switch', 'Higher studies'].map(opt => `
+                        <button onclick="selectOnboarding('lookingFor', '${opt}')" class="onboarding-opt px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 text-sm font-medium hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition text-left ${state.onboarding.lookingFor === opt ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : 'text-slate-700 dark:text-slate-300'}">${opt}</button>
+                    `).join('')}
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Target job role</label>
+                        <input type="text" id="onboardRole" value="Data Analyst" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="e.g. Data Analyst">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Preferred location</label>
+                        <input type="text" id="onboardLocation" value="Chennai" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="e.g. Chennai">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Skills</label>
+                        <input type="text" id="onboardSkills" value="Python, SQL, Excel, Power BI" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="e.g. Python, SQL">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Years of experience</label>
+                            <input type="text" id="onboardExp" value="0" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Expected salary</label>
+                            <input type="text" id="onboardSalary" value="₹6-8 LPA" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="e.g. ₹6-8 LPA">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Education</label>
+                        <input type="text" id="onboardEducation" value="B.Tech in Computer Science" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="e.g. B.Tech in CS">
+                    </div>
+                </div>
+                <button onclick="handleOnboarding()" class="w-full gradient-bg gradient-bg-hover text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-blue-500/25 mt-6">Complete Setup</button>
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+// ============================================================
+// 4.4 DASHBOARD LAYOUT
+// ============================================================
+
+function renderDashboardLayout(content) {
+    return `
+    <div class="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col">
+            <div class="flex items-center gap-2 px-6 h-16 border-b border-slate-200 dark:border-slate-800 shrink-0">
+                <div class="w-8 h-8 gradient-bg rounded-lg flex items-center justify-center">
+                    <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+                </div>
+                <span class="text-lg font-bold text-slate-900 dark:text-white">Career<span class="gradient-text">AI</span></span>
+                <button onclick="toggleSidebar()" class="ml-auto lg:hidden p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+                ${[
+                    { id: 'dashboard', icon: 'layout-dashboard', label: 'Dashboard' },
+                    { id: 'resume-analyzer', icon: 'file-search', label: 'Resume Analyzer' },
+                    { id: 'job-matcher', icon: 'target', label: 'Job Matcher' },
+                    { id: 'skill-gap', icon: 'trending-up', label: 'Skill Gap' },
+                    { id: 'interview-prep', icon: 'message-square', label: 'Interview Prep' },
+                    { id: 'career-roadmap', icon: 'map', label: 'Career Roadmap' },
+                    { id: 'career-coach', icon: 'bot', label: 'AI Career Coach' },
+                    { id: 'saved-jobs', icon: 'bookmark', label: 'Saved Jobs' },
+                    { id: 'applications', icon: 'clipboard-list', label: 'Applications' },
+                    { id: 'profile', icon: 'user', label: 'Profile' },
+                    { id: 'admin', icon: 'settings', label: 'Admin' },
+                ].map(item => `
+                    <button onclick="navigate('${item.id}')" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition ${state.currentPage === item.id ? 'active' : ''}">
+                        <i data-lucide="${item.icon}" class="w-5 h-5"></i> ${item.label}
+                    </button>
+                `).join('')}
+            </nav>
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 gradient-bg rounded-full flex items-center justify-center text-white text-sm font-bold">${state.user.avatar}</div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-slate-900 dark:text-white truncate">${state.user.name}</p>
+                        <p class="text-xs text-slate-500 truncate">${state.user.email}</p>
+                    </div>
+                    <button onclick="handleLogout()" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" title="Logout">
+                        <i data-lucide="log-out" class="w-4 h-4 text-slate-400"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col min-w-0 lg:ml-64">
+            <!-- Top Bar -->
+            <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 shrink-0">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div class="flex-1 lg:flex-none"></div>
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" aria-label="Toggle dark mode">
+                        <i data-lucide="${state.darkMode ? 'sun' : 'moon'}" class="w-5 h-5"></i>
+                    </button>
+                    <div class="relative">
+                        <button onclick="toggleNotifications()" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition relative">
+                            <i data-lucide="bell" class="w-5 h-5"></i>
+                            ${state.notifications.filter(n => !n.read).length > 0 ? '<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>' : ''}
+                        </button>
+                        <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 rounded-2xl card-shadow-md border border-slate-200 dark:border-slate-800 z-50 animate-fade-in">
+                            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                                <h4 class="font-semibold text-sm">Notifications</h4>
+                                <button onclick="markAllRead()" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">Mark all read</button>
+                            </div>
+                            <div class="max-h-64 overflow-y-auto">
+                                ${state.notifications.map(n => `
+                                    <div class="p-4 border-b border-slate-100 dark:border-slate-800 last:border-0 ${n.read ? 'opacity-60' : ''}">
+                                        <p class="text-sm text-slate-700 dark:text-slate-300">${n.text}</p>
+                                        <p class="text-xs text-slate-400 mt-1">${n.time}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center text-white text-xs font-bold cursor-pointer" onclick="navigate('profile')">${state.user.avatar}</div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+                ${content}
+            </main>
+        </div>
+    </div>
+    `;
+}
+
+// ============================================================
+// 4.5 DASHBOARD CONTENT
+// ============================================================
+
+function renderDashboardContent() {
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    return `
+    <div class="animate-fade-in">
+        <div class="mb-8">
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">${greeting}, ${state.user.name.split(' ')[0]} 👋</h1>
+            <p class="text-slate-500 dark:text-slate-400 mt-1">Here's your career progress.</p>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+            ${[
+                { label: 'ATS Resume Score', value: '84%', icon: 'file-check', color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/30' },
+                { label: 'Profile Completion', value: '78%', icon: 'user-check', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/30' },
+                { label: 'Job Matches', value: '24', icon: 'target', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/30' },
+                { label: 'Skills to Improve', value: '6', icon: 'trending-up', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/30' },
+                { label: 'Interview Readiness', value: '72%', icon: 'message-square', color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-900/30' },
+                { label: 'Career Goal', value: 'Data Analyst', icon: 'flag', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/30' },
+            ].map(s => `
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 card-shadow border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-9 h-9 ${s.bg} rounded-xl flex items-center justify-center">
+                            <i data-lucide="${s.icon}" class="w-4.5 h-4.5 ${s.color}"></i>
+                        </div>
+                    </div>
+                    <p class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">${s.value}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">${s.label}</p>
+                </div>
+            `).join('')}
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800">
+                <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Career Progress</h3>
+                <div class="h-64">
+                    <canvas id="careerProgressChart"></canvas>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800">
+                <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Resume Score Breakdown</h3>
+                <div class="h-64">
+                    <canvas id="resumeBreakdownChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl card-shadow border border-slate-200 dark:border-slate-800">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="font-semibold text-slate-900 dark:text-white">Recent Activity</h3>
+            </div>
+            <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                ${[
+                    { icon: 'file-check', text: 'Resume analysis completed', time: '2 min ago', color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30' },
+                    { icon: 'target', text: 'New job match: Data Analyst at ABC Technologies (87%)', time: '1 hour ago', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30' },
+                    { icon: 'message-square', text: 'Interview readiness score increased to 78%', time: '3 hours ago', color: 'text-purple-600 bg-purple-50 dark:bg-purple-900/30' },
+                    { icon: 'bookmark', text: 'Saved job: Junior Data Analyst at XYZ Analytics', time: '1 day ago', color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/30' },
+                ].map(a => `
+                    <div class="p-4 sm:p-6 flex items-center gap-4">
+                        <div class="w-9 h-9 ${a.color} rounded-xl flex items-center justify-center shrink-0">
+                            <i data-lucide="${a.icon}" class="w-4.5 h-4.5"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm text-slate-700 dark:text-slate-300">${a.text}</p>
+                            <p class="text-xs text-slate-400 mt-0.5">${a.time}</p>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+// ============================================================
+// 4.6 RESUME ANALYZER
+// ============================================================
+
+function renderResumeAnalyzer() {
+    if (!state.resume.analyzed) {
+        return `
+        <div class="animate-fade-in max-w-4xl mx-auto">
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Resume Analyzer</h1>
+            <p class="text-slate-500 dark:text-slate-400 mb-8">Upload your resume to get an instant ATS score and detailed feedback.</p>
+
+            <div class="bg-white dark:bg-slate-900 rounded-2xl card-shadow border border-slate-200 dark:border-slate-800 p-8 mb-6">
+                <div id="dropZone" class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-12 text-center hover:border-blue-500 dark:hover:border-blue-400 transition cursor-pointer" onclick="document.getElementById('fileInput').click()">
+                    <div class="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="upload-cloud" class="w-8 h-8 text-blue-600 dark:text-blue-400"></i>
+                    </div>
+                    <p class="font-semibold text-slate-900 dark:text-white mb-1">Drag and drop your resume here</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Supports PDF, DOCX (Max 5MB)</p>
+                    <button class="gradient-bg text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition">Browse Files</button>
+                    <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.doc" onchange="handleFileUpload(event)">
+                </div>
+                <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200 dark:border-slate-700"></div></div>
+                    <div class="relative flex justify-center text-xs"><span class="bg-white dark:bg-slate-900 px-3 text-slate-400">or paste resume text</span></div>
+                </div>
+                <textarea id="resumeText" rows="6" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Paste your resume content here...">Alex Johnson
+alex@example.com | +91 98765 43210
+Aspiring Data Analyst with strong foundation in Python, SQL, and Power BI.
+Education: B.Tech in Computer Science, Anna University (2022-2026)
+Skills: Python, SQL, Excel, Power BI
+Projects: Sales Dashboard, Customer Churn Prediction</textarea>
+                <div id="fileInfo" class="hidden mt-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i>
+                        <div class="flex-1">
+                            <p id="fileName" class="text-sm font-medium text-slate-900 dark:text-white"></p>
+                            <p id="fileType" class="text-xs text-slate-500"></p>
+                        </div>
+                        <button onclick="clearFile()" class="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700"><i data-lucide="x" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+                <button onclick="analyzeResume()" id="analyzeBtn" class="w-full gradient-bg gradient-bg-hover text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-blue-500/25 mt-6 flex items-center justify-center gap-2">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i> Analyze Resume
+                </button>
+            </div>
+        </div>
+        `;
+    }
+
+    // Analyzed state
+    const r = state.resume;
+    return `
+    <div class="animate-fade-in max-w-6xl mx-auto">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Resume Analysis</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">${r.fileName || 'Pasted resume text'}</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="state.resume.analyzed = false; render();" class="border border-slate-300 dark:border-slate-700 text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-2">
+                    <i data-lucide="upload" class="w-4 h-4"></i> Re-upload
+                </button>
+                <button onclick="showToast('Report downloaded successfully!', 'success')" class="gradient-bg text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition flex items-center gap-2">
+                    <i data-lucide="download" class="w-4 h-4"></i> Download Report
+                </button>
+            </div>
+        </div>
+
+        <!-- Score Section -->
+        <div class="grid lg:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-8 card-shadow border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center">
+                <div class="relative w-40 h-40 mb-4">
+                    <svg class="w-40 h-40 -rotate-90" viewBox="0 0 120 120">
+                        <circle cx="60" cy="60" r="52" fill="none" stroke="#e2e8f0" stroke-width="10" class="dark:stroke-slate-700"/>
+                        <circle cx="60" cy="60" r="52" fill="none" stroke="url(#gradient2)" stroke-width="10" stroke-linecap="round"
+                            stroke-dasharray="326.7" stroke-dashoffset="${326.7 - (326.7 * r.atsScore / 100)}" class="progress-ring-circle"/>
+                        <defs>
+                            <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#2563eb"/>
+                                <stop offset="100%" stop-color="#7c3aed"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span class="text-4xl font-bold text-slate-900 dark:text-white">${r.atsScore}</span>
+                        <span class="text-xs text-slate-400">/100</span>
+                    </div>
+                </div>
+                <h3 class="font-semibold text-slate-900 dark:text-white">Overall ATS Score</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">${r.atsScore >= 80 ? 'Excellent! Your resume is ATS-friendly.' : 'Good, but there is room for improvement.'}</p>
+            </div>
+
+            <div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800">
+                <h3 class="font-semibold text-slate-900 dark:text-white mb-5">Score Breakdown</h3>
+                <div class="space-y-4">
+                    ${Object.entries({
+                        'ATS Compatibility': r.breakdown.atsCompatibility,
+                        'Keyword Optimization': r.breakdown.keywordOptimization,
+                        'Formatting': r.breakdown.formatting,
+                        'Skills': r.breakdown.skills,
+                        'Experience': r.breakdown.experience,
+                        'Achievements': r.breakdown.achievements
+                    }).map(([label, val]) => `
+                        <div>
+                            <div class="flex justify-between text-sm mb-1.5">
+                                <span class="text-slate-600 dark:text-slate-400">${label}</span>
+                                <span class="font-medium text-slate-900 dark:text-white">${val}%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                                <div class="gradient-bg h-2 rounded-full progress-bar" style="width:${val}%"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+
+        <!-- Strengths & Weaknesses -->
+        <div class="grid lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800">
+                <h3 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5 text-emerald-500"></i> Strengths</h3>
+                <ul class="space-y-3">
+                    ${r.strengths.map(s => `
+                        <li class="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400">
+                            <i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-0.5 shrink-0"></i> ${s}
+                        </li>
+                    `).join('')}
+                </ul>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800">
+                <h3 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2"><i data-lucide="alert-circle" class="w-5 h-5 text-amber-500"></i> Areas for Improvement</h3>
+                <ul class="space-y-3">
+                    ${r.weaknesses.map(w => `
+                        <li class="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400">
+                            <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500 mt-0.5 shrink-0"></i> ${w}
+                        </li>
+                    `).join('')}
+                </ul>
+            </div>
+        </div>
+
+        <!-- AI Recommendations -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800 mb-8">
+            <h3 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2"><i data-lucide="sparkles" class="w-5 h-5 text-blue-500"></i> AI Recommendations</h3>
+            <div class="space-y-3">
+                ${r.recommendations.map(rec => `
+                    <div class="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+                        <i data-lucide="lightbulb" class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0"></i>
+                        <p class="text-sm text-slate-700 dark:text-slate-300">${rec}</p>
+                    </div>
+                `).join('')}
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="navigate('resume-builder')" class="gradient-bg text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition flex items-center gap-2"><i data-lucide="wand-2" class="w-4 h-4"></i> Improve Resume</button>
+                <button onclick="showToast('Report downloaded successfully!', 'success')" class="border border-slate-300 dark:border-slate-700 text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-2"><i data-lucide="download" class="w-4 h-4"></i> Download Report</button>
+            </div>
+        </div>
+
+        <!-- Extracted Information -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl card-shadow border border-slate-200 dark:border-slate-800">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="font-semibold text-slate-900 dark:text-white">Extracted Information</h3>
+            </div>
+            <div class="p-6 grid sm:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Name</p>
+                    <p class="text-sm text-slate-700 dark:text-slate-300">${r.extracted.name}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Contact</p>
+                    <p class="text-sm text-slate-700 dark:text-slate-300">${r.extracted.contact}</p>
+                </div>
+                <div class="sm:col-span-2">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Summary</p>
+                    <p class="text-sm text-slate-700 dark:text-slate-300">${r.extracted.summary}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Education</p>
+                    <p class="text-sm text-slate-700 dark:text-slate-300">${r.extracted.education}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Experience</p>
+                    <p class="text-sm text-slate-700 dark:text-slate-300">${r.extracted.experience}</p>
+                </div>
+                <div class="sm:col-span-2">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Skills</p>
+                    <div class="flex flex-wrap gap-2">
+                        ${r.extracted.skills.map(s => `<span class="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full">${s}</span>`).join('')}
+                    </div>
+                </div>
+                <div class="sm:col-span-2">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Projects</p>
+                    <ul class="list-disc list-inside text-sm text-slate-700 dark:text-slate-300 space-y-1">
+                        ${r.extracted.projects.map(p => `<li>${p}</li>`).join('')}
+                    </ul>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Certifications</p>
+                    <ul class="list-disc list-inside text-sm text-slate-700 dark:text-slate-300 space-y-1">
+                        ${r.extracted.certifications.map(c => `<li>${c}</li>`).join('')}
+                    </ul>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Achievements</p>
+                    <ul class="list-disc list-inside text-sm text-slate-700 dark:text-slate-300 space-y-1">
+                        ${r.extracted.achievements.map(a => `<li>${a}</li>`).join('')}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+// ============================================================
+// 4.7 JOB MATCHER
+// ============================================================
+
+function renderJobMatcher() {
+    return `
+    <div class="animate-fade-in max-w-6xl mx-auto">
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Job Matcher</h1>
+        <p class="text-slate-500 dark:text-slate-400 mb-8">Find jobs that match your skills and experience.</p>
+
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800 mb-8">
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Target Role</label>
+                    <input type="text" id="matchRole" value="Data Analyst" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Location</label>
+                    <input type="text" id="matchLocation" value="Chennai" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Experience</label>
+                    <select id="matchExperience" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <option>Fresher</option>
+                        <option>0-2 years</option>
+                        <option>2-5 years</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Skills</label>
+                    <input type="text" id="matchSkills" value="Python, SQL, Excel, Power BI" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                </div>
+            </div>
+            <button onclick="performJobMatch()" class="gradient-bg gradient-bg-hover text-white font-semibold px-6 py-3 rounded-xl transition shadow-lg shadow-blue-500/25 mt-4 flex items-center gap-2">
+                <i data-lucide="search" class="w-5 h-5"></i> Find Matches
+            </button>
+        </div>
+
+        <div class="mb-6 flex items-center gap-2">
+            <span class="text-sm text-slate-500 dark:text-slate-400">${state.jobMatcher.results.length} jobs found</span>
+            <span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-medium rounded-full">Demo Listings</span>
+        </div>
+
+        <div class="space-y-4">
+            ${state.jobMatcher.results.map(job => `
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800 hover:card-shadow-md transition animate-fade-in">
+                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 gradient-bg rounded-xl flex items-center justify-center shrink-0">
+                                <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-slate-900 dark:text-white">${job.title}</h3>
+                                <p class="text-sm text-slate-500 dark:text-slate-400">${job.company} • ${job.location}</p>
+                                <p class="text-xs text-slate-400 mt-1">${job.experience} • ${job.salary} • ${job.posted}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="text-right">
+                                <p class="text-2xl font-bold ${job.match >= 80 ? 'text-emerald-600' : job.match >= 70 ? 'text-amber-600' : 'text-slate-600'}">${job.match}%</p>
+                                <p class="text-xs text-slate-400">Resume Match</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        ${job.matched.map(s => `<span class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-medium rounded-full flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i>${s}</span>`).join('')}
+                        ${job.missing.map(s => `<span class="px-2.5 py-1 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-xs font-medium rounded-full flex items-center gap-1"><i data-lucide="x" class="w-3 h-3"></i>${s}</span>`).join('')}
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="showToast('Job details viewed (demo)', 'info')" class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">View Job</button>
+                        <span class="text-slate-300 dark:text-slate-700">•</span>
+                        <button onclick="saveJob(${job.id})" class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition flex items-center gap-1"><i data-lucide="bookmark" class="w-3.5 h-3.5"></i> Save</button>
+                        <span class="text-slate-300 dark:text-slate-700">•</span>
+                        <button onclick="showToast('Application started for ${job.title} at ${job.company}', 'success')" class="text-sm font-medium gradient-text hover:underline">Apply Now</button>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    </div>
+    `;
+}
+
+// ============================================================
+// 4.8 SKILL GAP
+// ============================================================
+
+function renderSkillGap() {
+    return `
+    <div class="animate-fade-in max-w-6xl mx-auto">
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Skill Gap Analysis</h1>
+        <p class="text-slate-500 dark:text-slate-400 mb-8">Compare your skills with what's needed for your target role.</p>
+
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800 mb-8">
+            <div class="max-w-md">
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Target Role</label>
+                <div class="flex gap-3">
+                    <input type="text" id="skillGapRole" value="Data Analyst" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    <button onclick="performSkillGap()" class="gradient-bg text-white font-semibold px-5 py-2.5 rounded-xl transition text-sm">Analyze</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800">
+                <h3 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5 text-emerald-500"></i> Your Skills</h3>
+                <div class="flex flex-wrap gap-2">
+                    ${state.skillGap.currentSkills.map(s => `<span class="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-sm font-medium rounded-full">${s}</span>`).join('')}
+                </div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800">
+                <h3 class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2"><i data-lucide="trending-up" class="w-5 h-5 text-amber-500"></i> Skills to Learn</h3>
+                <div class="flex flex-wrap gap-2">
+                    ${state.skillGap.skillsToLearn.map(s => `<span class="px-3 py-1.5 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm font-medium rounded-full">${s.name}</span>`).join('')}
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800 mb-8">
+            <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Skill Comparison</h3>
+            <div class="h-72">
+                <canvas id="skillGapChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Priority -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800 mb-8">
+            <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Learning Priority</h3>
+            <div class="grid sm:grid-cols-3 gap-4">
+                ${['High', 'Medium', 'Low'].map(priority => {
+                    const skills = state.skillGap.skillsToLearn.filter(s => s.priority === priority);
+                    const colors = { High: 'text-red-600 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800', Medium: 'text-amber-600 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800', Low: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800' };
+                    return `
+                        <div class="p-4 rounded-xl border ${colors[priority]}">
+                            <h4 class="font-semibold text-sm mb-3">${priority} Priority</h4>
+                            <ul class="space-y-2">
+                                ${skills.map(s => `<li class="text-sm flex items-center gap-2"><i data-lucide="circle" class="w-2 h-2 fill-current"></i>${s.name}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            <button onclick="navigate('career-roadmap')" class="gradient-bg gradient-bg-hover text-white font-semibold px-6 py-3 rounded-xl transition shadow-lg shadow-blue-500/25 mt-6 flex items-center gap-2">
+                <i data-lucide="map" class="w-5 h-5"></i> Create My Learning Roadmap
+            </button>
+        </div>
+    </div>
+    `;
+}
+
+// ============================================================
+// 4.9 CAREER ROADMAP
+// ============================================================
+
+function renderRoadmap() {
+    return `
+    <div class="animate-fade-in max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Career Roadmap</h1>
+        <p class="text-slate-500 dark:text-slate-400 mb-2">Your personalized path to becoming a <span class="font-semibold text-blue-600 dark:text-blue-400">${state.user.careerGoal}</span></p>
+        <p class="text-sm text-slate-400 mb-8">Follow this step-by-step plan to reach your career goal.</p>
+
+        <div class="relative">
+            <!-- Timeline line -->
+            <div class="absolute left-6 top-0 bottom-0 w-0.5 bg-slate-200 dark:bg-slate-700"></div>
+
+            <div class="space-y-6">
+                ${state.roadmap.map((step, i) => {
+                    const statusColors = {
+                        'completed': 'bg-emerald-500 text-white',
+                        'in-progress': 'bg-blue-500 text-white',
+                        'not-started': 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                    };
+                    const statusIcons = {
+                        'completed': 'check',
+                        'in-progress': 'loader',
+                        'not-started': 'circle'
+                    };
+                    return `
+                        <div class="relative flex gap-6 animate-fade-in" style="animation-delay: ${i * 0.08}s">
+                            <div class="w-12 h-12 rounded-full ${statusColors[step.status]} flex items-center justify-center shrink-0 z-10 shadow-md">
+                                <i data-lucide="${statusIcons[step.status]}" class="w-5 h-5 ${step.status === 'in-progress' ? 'animate-spin' : ''}"></i>
+                            </div>
+                            <div class="flex-1 bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div>
+                                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Step ${step.step}</span>
+                                        <h3 class="font-semibold text-slate-900 dark:text-white text-lg">${step.title}</h3>
+                                    </div>
+                                    <span class="text-sm font-medium ${step.status === 'completed' ? 'text-emerald-600' : step.status === 'in-progress' ? 'text-blue-600' : 'text-slate-400'}">
+                                        ${step.status === 'completed' ? '✓ Completed' : step.status === 'in-progress' ? step.progress + '% Progress' : 'Not Started'}
+                                    </span>
+                                </div>
+                                ${step.status !== 'completed' ? `
+                                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 mb-4">
+                                        <div class="gradient-bg h-1.5 rounded-full" style="width:${step.progress}%"></div>
+                                    </div>
+                                ` : ''}
+                                <div class="grid sm:grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Skills</p>
+                                        <p class="text-slate-600 dark:text-slate-400">${step.skills}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Suggested Projects</p>
+                                        <p class="text-slate-600 dark:text-slate-400">${step.projects}</p>
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Learning Resources</p>
+                                        <p class="text-slate-600 dark:text-slate-400">${step.resources}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+// ============================================================
+// 4.10 INTERVIEW PREP
+// ============================================================
+
+function renderInterviewPrep() {
+    const q = state.interview.questions[state.interview.currentQuestion];
+    return `
+    <div class="animate-fade-in max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Interview Preparation</h1>
+        <p class="text-slate-500 dark:text-slate-400 mb-8">Practice with AI-generated questions and get instant feedback.</p>
+
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800 mb-8">
+            <div class="grid sm:grid-cols-3 gap-4 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Job Role</label>
+                    <select class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <option>Data Analyst</option>
+                        <option>Software Developer</option>
+                        <option>Business Analyst</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Experience</label>
+                    <select class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <option>Fresher</option>
+                        <option>0-2 years</option>
+                        <option>2-5 years</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Interview Type</label>
+                    <select class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <option>Technical</option>
+                        <option>HR</option>
+                        <option>Behavioral</option>
+                        <option>Managerial</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="startMockInterview()" class="gradient-bg gradient-bg-hover text-white font-semibold px-6 py-3 rounded-xl transition shadow-lg shadow-blue-500/25 flex items-center gap-2">
+                <i data-lucide="play" class="w-5 h-5"></i> Start Mock Interview
+            </button>
+        </div>
+
+        <!-- Current Question -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Question ${state.interview.currentQuestion + 1} of ${state.interview.questions.length}</span>
+                <span class="text-xs text-slate-400">Technical Round</span>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-6">${q.q}</h3>
+            <textarea id="interviewAnswer" rows="4" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition mb-4" placeholder="Type your answer here...">${q.a}</textarea>
+            <div class="flex gap-3">
+                <button onclick="evaluateAnswer()" class="gradient-bg text-white font-semibold px-5 py-2.5 rounded-xl transition text-sm flex items-center gap-2"><i data-lucide="send" class="w-4 h-4"></i> Submit Answer</button>
+                <button onclick="nextQuestion()" class="border border-slate-300 dark:border-slate-700 text-sm font-medium px-5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition">Skip</button>
+            </div>
+        </div>
+
+        <!-- Feedback -->
+        ${q.a ? `
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800 mb-6 animate-fade-in">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="relative w-16 h-16">
+                        <svg class="w-16 h-16 -rotate-90" viewBox="0 0 60 60">
+                            <circle cx="30" cy="30" r="26" fill="none" stroke="#e2e8f0" stroke-width="5" class="dark:stroke-slate-700"/>
+                            <circle cx="30" cy="30" r="26" fill="none" stroke="${q.score >= 80 ? '#10b981' : q.score >= 60 ? '#f59e0b' : '#ef4444'}" stroke-width="5" stroke-linecap="round"
+                                stroke-dasharray="163.4" stroke-dashoffset="${163.4 - (163.4 * q.score / 100)}" class="progress-ring-circle"/>
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="text-sm font-bold text-slate-900 dark:text-white">${q.score}%</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-slate-900 dark:text-white">Answer Quality</h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">${q.score >= 80 ? 'Excellent answer!' : q.score >= 60 ? 'Good, but could be improved.' : 'Needs more detail.'}</p>
+                    </div>
+                </div>
+                <div class="grid sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Feedback</p>
+                        <ul class="space-y-2">
+                            ${q.feedback.map(f => `<li class="text-sm text-slate-600 dark:text-slate-400 flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500 mt-0.5 shrink-0"></i>${f}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Suggested Answer</p>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">${q.suggested}</p>
+                    </div>
+                </div>
+            </div>
+        ` : ''}
+
+        <!-- Scores -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800">
+            <h3 class="font-semibold text-slate-900 dark:text-white mb-5">Interview Score</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                ${Object.entries(state.interview.scores).map(([key, val]) => `
+                    <div class="text-center p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                        <p class="text-2xl font-bold gradient-text">${val}%</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 capitalize">${key}</p>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+// ============================================================
+// 4.11 CAREER COACH
+// ============================================================
+
+function renderCareerCoach() {
+    return `
+    <div class="animate-fade-in max-w-3xl mx-auto flex flex-col h-[calc(100vh-12rem)]">
+        <div class="mb-4">
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">CareerAI Coach</h1>
+            <p class="text-slate-500 dark:text-slate-400">Ask me anything about resumes, jobs, skills, interviews, or career planning.</p>
+        </div>
+
+        <div class="flex-1 bg-white dark:bg-slate-900 rounded-2xl card-shadow border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden">
+            <!-- Messages -->
+            <div id="chatMessages" class="flex-1 overflow-y-auto p-6 space-y-4">
+                ${state.chatMessages.map(m => `
+                    <div class="flex gap-3 ${m.role === 'user' ? 'justify-end' : ''} animate-fade-in">
+                        ${m.role === 'ai' ? `
+                            <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center shrink-0">
+                                <i data-lucide="bot" class="w-4 h-4 text-white"></i>
+                            </div>
+                            <div class="max-w-[80%] bg-slate-100 dark:bg-slate-800 rounded-2xl rounded-tl-sm px-4 py-3">
+                                <p class="text-sm text-slate-700 dark:text-slate-300">${m.text}</p>
+                            </div>
+                        ` : `
+                            <div class="max-w-[80%] bg-blue-600 rounded-2xl rounded-tr-sm px-4 py-3">
+                                <p class="text-sm text-white">${m.text}</p>
+                            </div>
+                            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center shrink-0 text-white text-xs font-bold">${state.user.avatar}</div>
+                        `}
+                    </div>
+                `).join('')}
+            </div>
+
+            <!-- Suggested prompts -->
+            <div class="px-6 pb-3 flex gap-2 overflow-x-auto">
+                ${['How can I improve my resume?', 'What skills should I learn for Data Analyst?', 'Give me 10 SQL interview questions', 'How to prepare for HR interview?'].map(p => `
+                    <button onclick="sendChatMessage('${p}')" class="shrink-0 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-400 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition whitespace-nowrap">${p}</button>
+                `).join('')}
+            </div>
+
+            <!-- Input -->
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+                <div class="flex gap-3">
+                    <input type="text" id="chatInput" class="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Ask anything..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+                    <button onclick="sendChatMessage()" class="gradient-bg text-white p-3 rounded-xl transition shadow-lg shadow-blue-500/25 shrink-0">
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <button onclick="clearChat()" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 mt-2 flex items-center gap-1"><i data-lucide="trash-2" class="w-3 h-3"></i> Clear chat</button>
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+// ============================================================
+// 4.12 APPLICATIONS
+// ============================================================
+
+function renderApplications() {
+    const stats = {
+        total: state.applications.length,
+        interviews: state.applications.filter(a => a.status === 'Interview').length,
+        offers: state.applications.filter(a => a.status === 'Offer').length,
+        responseRate: Math.round((state.applications.filter(a => a.status !== 'Saved' && a.status !== 'Applied').length / state.applications.length) * 100)
+    };
+    const columns = ['Saved', 'Applied', 'Interview', 'Offer', 'Rejected'];
+    return `
+    <div class="animate-fade-in">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Application Tracker</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">Track your job applications in one place.</p>
+            </div>
+            <button onclick="showToast('Add application form opened (demo)', 'info')" class="gradient-bg text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Add Application</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            ${[
+                { label: 'Total Applications', value: stats.total, icon: 'clipboard-list', color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30' },
+                { label: 'Interviews', value: stats.interviews, icon: 'message-square', color: 'text-purple-600 bg-purple-50 dark:bg-purple-900/30' },
+                { label: 'Offers', value: stats.offers, icon: 'award', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30' },
+                { label: 'Response Rate', value: stats.responseRate + '%', icon: 'percent', color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/30' },
+            ].map(s => `
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 card-shadow border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-9 h-9 ${s.color} rounded-xl flex items-center justify-center"><i data-lucide="${s.icon}" class="w-4.5 h-4.5"></i></div>
+                    </div>
+                    <p class="text-xl font-bold text-slate-900 dark:text-white">${s.value}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">${s.label}</p>
+                </div>
+            `).join('')}
+        </div>
+
+        <!-- Chart -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800 mb-8">
+            <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Application Status</h3>
+            <div class="h-64">
+                <canvas id="applicationChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Kanban Board -->
+        <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            ${columns.map(col => {
+                const apps = state.applications.filter(a => a.status === col);
+                const colColors = {
+                    'Saved': 'border-slate-300 dark:border-slate-600',
+                    'Applied': 'border-blue-300 dark:border-blue-600',
+                    'Interview': 'border-purple-300 dark:border-purple-600',
+                    'Offer': 'border-emerald-300 dark:border-emerald-600',
+                    'Rejected': 'border-red-300 dark:border-red-600'
+                };
+                return `
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl card-shadow border ${colColors[col]} border-t-4">
+                        <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                            <h4 class="font-semibold text-sm text-slate-900 dark:text-white">${col}</h4>
+                            <span class="w-6 h-6 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-xs font-medium text-slate-500">${apps.length}</span>
+                        </div>
+                        <div class="p-3 space-y-3 max-h-96 overflow-y-auto">
+                            ${apps.length === 0 ? `
+                                <p class="text-xs text-slate-400 text-center py-4">No applications</p>
+                            ` : apps.map(app => `
+                                <div class="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:card-shadow transition cursor-pointer">
+                                    <p class="text-sm font-medium text-slate-900 dark:text-white">${app.title}</p>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${app.company}</p>
+                                    <p class="text-xs text-slate-400 mt-1">${app.date}</p>
+                                    ${app.interviewDate ? `<p class="text-xs text-purple-600 dark:text-purple-400 mt-1 flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>${app.interviewDate}</p>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    </div>
+    `;
+}
+
+// ============================================================
+// 4.13 SAVED JOBS
+// ============================================================
+
+function renderSavedJobs() {
+    return `
+    <div class="animate-fade-in max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Saved Jobs</h1>
+        <p class="text-slate-500 dark:text-slate-400 mb-8">Jobs you've saved for later.</p>
+
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 card-shadow border border-slate-200 dark:border-slate-800 mb-6">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input type="text" placeholder="Search saved jobs..." class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                <select class="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    <option>All Roles</option>
+                    <option>Data Analyst</option>
+                    <option>Business Analyst</option>
+                </select>
+                <select class="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    <option>All Locations</option>
+                    <option>Chennai</option>
+                    <option>Bangalore</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            ${state.savedJobs.map(job => `
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800 flex items-center justify-between animate-fade-in">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 gradient-bg rounded-xl flex items-center justify-center shrink-0">
+                            <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-slate-900 dark:text-white">${job.title}</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">${job.company} • ${job.location}</p>
+                            <div class="flex items-center gap-3 mt-1">
+                                <span class="text-xs font-medium ${job.match >= 80 ? 'text-emerald-600' : 'text-amber-600'}">${job.match}% match</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="showToast('Job details viewed (demo)', 'info')" class="border border-slate-300 dark:border-slate-700 text-sm font-medium px-4 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition">View</button>
+                        <button onclick="removeSavedJob(${job.id})" class="p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 transition" title="Remove"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+            `).join('')}
+            ${state.savedJobs.length === 0 ? `
+                <div class="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                    <i data-lucide="bookmark" class="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4"></i>
+                    <p class="text-slate-500 dark:text-slate-400">No saved jobs yet.</p>
+                    <p class="text-sm text-slate-400 mt-1">Save jobs from the Job Matcher to see them here.</p>
+                    <button onclick="navigate('job-matcher')" class="gradient-bg text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition mt-4">Browse Jobs</button>
+                </div>
+            ` : ''}
+        </div>
+    </div>
+    `;
+}
+
+// ============================================================
+// 4.14 PROFILE
+// ============================================================
+
+function renderProfile() {
+    return `
+    <div class="animate-fade-in max-w-3xl mx-auto">
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Profile</h1>
+        <p class="text-slate-500 dark:text-slate-400 mb-8">Manage your personal information.</p>
+
+        <div class="bg-white dark:bg-slate-900 rounded-2xl card-shadow border border-slate-200 dark:border-slate-800 p-8 mb-6">
+            <div class="flex items-center gap-6 mb-8">
+                <div class="w-20 h-20 gradient-bg rounded-2xl flex items-center justify-center text-white text-2xl font-bold">${state.user.avatar}</div>
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white">${state.user.name}</h2>
+                    <p class="text-slate-500 dark:text-slate-400">${state.user.email}</p>
+                    <div class="mt-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-32 bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                                <div class="gradient-bg h-2 rounded-full" style="width:${state.user.profileCompletion}%"></div>
+                            </div>
+                            <span class="text-xs font-medium text-slate-500">${state.user.profileCompletion}% complete</span>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="showToast('Edit profile form opened (demo)', 'info')" class="ml-auto border border-slate-300 dark:border-slate-700 text-sm font-medium px-4 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-2"><i data-lucide="edit" class="w-4 h-4"></i> Edit</button>
+            </div>
+            <div class="grid sm:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Career Goal</p>
+                    <p class="text-sm text-slate-700 dark:text-slate-300">${state.user.careerGoal}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Experience Level</p>
+                    <p class="text-sm text-slate-700 dark:text-slate-300">${state.user.experienceLevel}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Preferred Location</p>
+                    <p class="text-sm text-slate-700 dark:text-slate-300">${state.user.location}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Expected Salary</p>
+                    <p class="text-sm text-slate-700 dark:text-slate-300">${state.user.expectedSalary}</p>
+                </div>
+                <div class="sm:col-span-2">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Education</p>
+                    <p class="text-sm text-slate-700 dark:text-slate-300">${state.user.education}</p>
+                </div>
+                <div class="sm:col-span-2">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Skills</p>
+                    <div class="flex flex-wrap gap-2">
+                        ${state.user.skills.map(s => `<span class="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full">${s}</span>`).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+// ============================================================
+// 4.15 ADMIN DASHBOARD
+// ============================================================
+
+function renderAdmin() {
+    return `
+    <div class="animate-fade-in">
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Admin Dashboard</h1>
+        <p class="text-slate-500 dark:text-slate-400 mb-8">Platform analytics and management.</p>
+
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+            ${[
+                { label: 'Total Users', value: '12,480', icon: 'users', color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30' },
+                { label: 'Active Users', value: '3,420', icon: 'activity', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30' },
+                { label: 'Resumes Analyzed', value: '28,750', icon: 'file-check', color: 'text-purple-600 bg-purple-50 dark:bg-purple-900/30' },
+                { label: 'Jobs Matched', value: '15,600', icon: 'target', color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/30' },
+                { label: 'Interviews Done', value: '8,900', icon: 'message-square', color: 'text-rose-600 bg-rose-50 dark:bg-rose-900/30' },
+            ].map(s => `
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 card-shadow border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-9 h-9 ${s.color} rounded-xl flex items-center justify-center"><i data-lucide="${s.icon}" class="w-4.5 h-4.5"></i></div>
+                    </div>
+                    <p class="text-xl font-bold text-slate-900 dark:text-white">${s.value}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">${s.label}</p>
+                </div>
+            `).join('')}
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800">
+                <h3 class="font-semibold text-slate-900 dark:text-white mb-4">User Growth</h3>
+                <div class="h-64">
+                    <canvas id="adminUserChart"></canvas>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 card-shadow border border-slate-200 dark:border-slate-800">
+                <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Resume Analysis Activity</h3>
+                <div class="h-64">
+                    <canvas id="adminResumeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-6">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl card-shadow border border-slate-200 dark:border-slate-800">
+                <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+                    <h3 class="font-semibold text-slate-900 dark:text-white">Manage Users</h3>
+                </div>
+                <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                    ${state.applications.slice(0, 4).map((a, i) => `
+                        <div class="p-4 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 gradient-bg rounded-full flex items-center justify-center text-white text-xs font-bold">${a.company.charAt(0)}</div>
+                                <div>
+                                    <p class="text-sm font-medium text-slate-900 dark:text-white">User ${i + 1}</p>
+                                    <p class="text-xs text-slate-500">user${i + 1}@example.com</p>
+                                </div>
+                            </div>
+                            <button onclick="showToast('User management action (demo)', 'info')" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">Manage</button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl card-shadow border border-slate-200 dark:border-slate-800">
+                <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+                    <h3 class="font-semibold text-slate-900 dark:text-white">Platform Analytics</h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    ${[
+                        { label: 'Daily Active Users', value: '3,420', change: '+12%' },
+                        { label: 'Avg. Session Duration', value: '8m 32s', change: '+5%' },
+                        { label: 'Resume Upload Rate', value: '89%', change: '+3%' },
+                        { label: 'Interview Completion Rate', value: '76%', change: '+8%' },
+                    ].map(item => `
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-600 dark:text-slate-400">${item.label}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-medium text-slate-900 dark:text-white">${item.value}</span>
+                                <span class="text-xs text-emerald-600">${item.change}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+// ============================================================
+// 5. EVENT HANDLERS
+// ============================================================
+
+function navigate(page) {
+    state.currentPage = page;
+    if (page === 'dashboard' || page === 'resume-analyzer' || page === 'job-matcher' || page === 'skill-gap' || page === 'career-roadmap' || page === 'interview-prep' || page === 'career-coach' || page === 'applications' || page === 'saved-jobs' || page === 'profile' || page === 'admin') {
+        state.isLoggedIn = true;
+    }
+    render();
+    // Close sidebar on mobile
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar && window.innerWidth < 1024) sidebar.classList.add('-translate-x-full');
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) sidebar.classList.toggle('-translate-x-full');
+}
+
+function toggleNotifications() {
+    const dropdown = document.getElementById('notificationDropdown');
+    if (dropdown) dropdown.classList.toggle('hidden');
+}
+
+function markAllRead() {
+    state.notifications.forEach(n => n.read = true);
+    render();
+    showToast('All notifications marked as read', 'success');
+}
+
+function handleLogin() {
+    state.isLoggedIn = true;
+    state.user.name = 'Alex Johnson';
+    showToast('Welcome back, Alex!', 'success');
+    navigate('dashboard');
+}
+
+function handleSignup() {
+    const name = document.getElementById('signupName')?.value || 'Alex Johnson';
+    state.user.name = name;
+    state.user.avatar = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    state.isLoggedIn = true;
+    showToast('Account created successfully!', 'success');
+    navigate('onboarding');
+}
+
+function handleOnboarding() {
+    const role = document.getElementById('onboardRole')?.value || 'Data Analyst';
+    const location = document.getElementById('onboardLocation')?.value || 'Chennai';
+    const skills = document.getElementById('onboardSkills')?.value || 'Python, SQL, Excel, Power BI';
+    state.user.careerGoal = role;
+    state.user.location = location;
+    state.user.skills = skills.split(',').map(s => s.trim());
+    state.onboarding.targetRole = role;
+    showToast('Profile setup complete!', 'success');
+    navigate('dashboard');
+}
+
+function selectOnboarding(field, value) {
+    state.onboarding[field] = value;
+    render();
+    // Re-highlight selected
+    document.querySelectorAll('.onboarding-opt').forEach(btn => {
+        btn.classList.toggle('border-blue-500', btn.textContent.trim() === value);
+        btn.classList.toggle('bg-blue-50', btn.textContent.trim() === value);
+    });
+}
+
+function handleLogout() {
+    state.isLoggedIn = false;
+    state.currentPage = 'landing';
+    showToast('Logged out successfully', 'info');
+    render();
+}
+
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('File size exceeds 5MB limit. Please upload a smaller file.', 'error');
+        return;
+    }
+    state.resume.fileName = file.name;
+    state.resume.fileType = file.type;
+    state.resume.uploaded = true;
+    const fileInfo = document.getElementById('fileInfo');
+    if (fileInfo) {
+        fileInfo.classList.remove('hidden');
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileType').textContent = (file.type || 'Unknown') + ' • ' + (file.size / 1024).toFixed(1) + ' KB';
+    }
+    showToast('File uploaded: ' + file.name, 'success');
+}
+
+function clearFile() {
+    state.resume.uploaded = false;
+    state.resume.fileName = '';
+    const fileInfo = document.getElementById('fileInfo');
+    if (fileInfo) fileInfo.classList.add('hidden');
+    document.getElementById('fileInput').value = '';
+}
+
+async function analyzeResume() {
+    const btn = document.getElementById('analyzeBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Analyzing...';
+        lucide.createIcons();
+    }
+    try {
+        const result = await AIService.analyzeResume(state.resume.text || '');
+        state.resume.analyzed = true;
+        state.resume.atsScore = result.atsScore;
+        state.resume.breakdown = result.breakdown;
+        state.resume.strengths = result.strengths;
+        state.resume.weaknesses = result.weaknesses;
+        state.resume.recommendations = result.recommendations;
+        state.resume.extracted = result.extracted;
+        showToast('Resume analysis complete!', 'success');
+        render();
+    } catch (e) {
+        showToast('We couldn\'t analyze your resume right now. Please try again.', 'error');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="sparkles" class="w-5 h-5"></i> Analyze Resume';
+            lucide.createIcons();
+        }
+    }
+}
+
+function performJobMatch() {
+    showToast('Matching jobs based on your skills...', 'info');
+    setTimeout(() => {
+        showToast('Found ' + state.jobMatcher.results.length + ' job matches!', 'success');
+    }, 1000);
+}
+
+function saveJob(id) {
+    const job = state.jobMatcher.results.find(j => j.id === id);
+    if (job && !state.savedJobs.find(j => j.id === id)) {
+        state.savedJobs.push({ id: job.id, title: job.title, company: job.company, location: job.location, match: job.match, saved: true });
+        showToast('Job saved: ' + job.title, 'success');
+    } else {
+        showToast('Job already saved', 'info');
+    }
+}
+
+function removeSavedJob(id) {
+    state.savedJobs = state.savedJobs.filter(j => j.id !== id);
+    showToast('Job removed from saved list', 'info');
+    render();
+}
+
+function performSkillGap() {
+    showToast('Analyzing skill gaps...', 'info');
+    setTimeout(() => {
+        showToast('Skill gap analysis complete!', 'success');
+    }, 800);
+}
+
+function startMockInterview() {
+    showToast('Mock interview started! Answer the first question.', 'info');
+}
+
+function evaluateAnswer() {
+    const textarea = document.getElementById('interviewAnswer');
+    if (!textarea || !textarea.value.trim()) {
+        showToast('Please type your answer before submitting.', 'warning');
+        return;
+    }
+    const q = state.interview.questions[state.interview.currentQuestion];
+    q.a = textarea.value;
+    const result = AIService.evaluateInterviewAnswer(q.q, q.a);
+    q.score = result.score;
+    q.feedback = result.feedback;
+    q.suggested = result.suggested;
+    showToast('Answer evaluated!', 'success');
+    render();
+}
+
+function nextQuestion() {
+    if (state.interview.currentQuestion < state.interview.questions.length - 1) {
+        state.interview.currentQuestion++;
+        render();
+    } else {
+        showToast('Mock interview complete! Check your scores below.', 'success');
+    }
+}
+
+function sendChatMessage(text) {
+    const input = document.getElementById('chatInput');
+    const message = text || input?.value?.trim();
+    if (!message) return;
+    state.chatMessages.push({ role: 'user', text: message });
+    if (input) input.value = '';
+    render();
+    // Simulate AI typing
+    setTimeout(() => {
+        const response = AIService.careerChat(message);
+        state.chatMessages.push({ role: 'ai', text: response });
+        render();
+        // Scroll to bottom
+        const chatMessages = document.getElementById('chatMessages');
+        if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 800);
+}
+
+function clearChat() {
+    state.chatMessages = [{ role: 'ai', text: 'Hi! I\'m your AI career coach. Ask me about resumes, jobs, skills, interviews, or career planning.' }];
+    showToast('Chat cleared', 'info');
+    render();
+}
+
+// ============================================================
+// 6. CHART INITIALIZATION
+// ============================================================
+
+function initCharts() {
+    // Career Progress Chart
+    const careerCtx = document.getElementById('careerProgressChart');
+    if (careerCtx) {
+        new Chart(careerCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
+                datasets: [{
+                    label: 'Career Progress',
+                    data: [20, 35, 48, 62, 75, 84],
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#2563eb',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, max: 100, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v + '%' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // Resume Breakdown Chart
+    const resumeCtx = document.getElementById('resumeBreakdownChart');
+    if (resumeCtx) {
+        new Chart(resumeCtx, {
+            type: 'radar',
+            data: {
+                labels: ['ATS', 'Keywords', 'Formatting', 'Skills', 'Experience', 'Achievements'],
+                datasets: [{
+                    label: 'Score',
+                    data: [90, 82, 88, 79, 85, 76],
+                    borderColor: '#7c3aed',
+                    backgroundColor: 'rgba(124, 58, 237, 0.15)',
+                    pointBackgroundColor: '#7c3aed',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { display: false },
+                        grid: { color: 'rgba(0,0,0,0.06)' },
+                        pointLabels: { font: { size: 11 } }
+                    }
+                }
+            }
+        });
+    }
+
+    // Skill Gap Chart
+    const skillCtx = document.getElementById('skillGapChart');
+    if (skillCtx) {
+        new Chart(skillCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Python', 'SQL', 'Excel', 'Power BI', 'Statistics', 'Tableau', 'Data Cleaning', 'Adv. SQL'],
+                datasets: [
+                    {
+                        label: 'Your Skills',
+                        data: [90, 85, 80, 70, 0, 0, 0, 0],
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Required',
+                        data: [90, 85, 80, 70, 75, 65, 70, 80],
+                        backgroundColor: 'rgba(37, 99, 235, 0.3)',
+                        borderColor: 'rgba(37, 99, 235, 1)',
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } },
+                scales: {
+                    y: { beginAtZero: true, max: 100, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v + '%' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // Application Chart
+    const appCtx = document.getElementById('applicationChart');
+    if (appCtx) {
+        new Chart(appCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Saved', 'Applied', 'Interview', 'Offer', 'Rejected'],
+                datasets: [{
+                    data: [
+                        state.applications.filter(a => a.status === 'Saved').length,
+                        state.applications.filter(a => a.status === 'Applied').length,
+                        state.applications.filter(a => a.status === 'Interview').length,
+                        state.applications.filter(a => a.status === 'Offer').length,
+                        state.applications.filter(a => a.status === 'Rejected').length,
+                    ],
+                    backgroundColor: ['#94a3b8', '#3b82f6', '#8b5cf6', '#10b981', '#ef4444'],
+                    borderWidth: 0,
+                    spacing: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 16 } } }
+            }
+        });
+    }
+
+    // Admin User Chart
+    const adminUserCtx = document.getElementById('adminUserChart');
+    if (adminUserCtx) {
+        new Chart(adminUserCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                datasets: [{
+                    label: 'Users',
+                    data: state.admin.userGrowth,
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } }
+            }
+        });
+    }
+
+    // Admin Resume Chart
+    const adminResumeCtx = document.getElementById('adminResumeChart');
+    if (adminResumeCtx) {
+        new Chart(adminResumeCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                datasets: [{
+                    label: 'Resumes Analyzed',
+                    data: state.admin.resumeActivity,
+                    backgroundColor: 'rgba(124, 58, 237, 0.7)',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } }
+            }
+        });
+    }
+}
+
+// ============================================================
+// 7. INITIAL RENDER
+// ============================================================
+
+render();
+</script>
+</body>
+</html>
+```
